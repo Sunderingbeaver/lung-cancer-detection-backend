@@ -2,7 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "Frontend/lung-cancer-frontend/dist/**/*",
+      "src": "Frontend/lung-cancer-frontend/dist/",
       "use": "@vercel/static"
     },
     {
@@ -13,11 +13,11 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "/Backend/backend.py"
+      "dest": "Backend/backend.py"
     },
     {
       "src": "/(.*)",
-      "dest": "/Frontend/lung-cancer-frontend/dist/$1"
+      "dest": "Frontend/lung-cancer-frontend/dist/$1"
     }
   ]
 }
