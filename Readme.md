@@ -2,7 +2,7 @@ Steps to run:
 
 cd Backend
 activate
-venv\Scripts\python -m uvicorn backend:app --host 0.0.0.0 --port 8000 --reload
+venv\Scripts\python -m uvicorn api.backend:app --host 0.0.0.0 --port 8000 --reload
 
 cd ..
 cd Frontend/lung-cancer-frontend
