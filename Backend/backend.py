@@ -12,7 +12,7 @@ import base64
 import traceback
 import gdown
 from pathlib import Path
-from fastapi.middleware.cors import CORSMiddleware\
+from fastapi.middleware.cors import CORSMiddleware
 
 
 app = FastAPI()
@@ -50,7 +50,7 @@ def convert_dcm_to_jpeg(image_array):
 
 async def load_dicom(file):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".dcm") as temp_file:
-        file_content = await file.read()  # ✅ Await file.read()
+        file_content = await file.read()  # Await file.read()
         temp_file.write(file_content)
         temp_file_path = temp_file.name
 
