@@ -8,6 +8,7 @@ from PIL import Image
 from ultralytics import YOLO
 import tempfile
 import os
+import uvicorn
 import base64
 import traceback
 import gdown
@@ -25,7 +26,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-MODEL_PATH = Path("D:/Research SHIT/Repo/lung-cancer-detection/v0.0.2b.pt")
+MODEL_PATH = Path("v0.0.2b.pt")
 MODEL_DRIVE_ID = "1han39oMGCXQ-2allaEgqdK9UQFMfmJuW"
 
 DEBUG_DIR = "debug_uploads"

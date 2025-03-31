@@ -1,3 +1,5 @@
+import { detectLungCancer } from '../services/api';
+
 <template>
   <div>
     <h1>Lung Cancer Detection</h1>
@@ -19,8 +21,6 @@
     </div>
   </div>
 </template>
-
-
 
 
 <script>
@@ -54,7 +54,7 @@ export default {
         if (!response.ok) throw new Error(`HTTP Error! Status: ${response.status}`);
 
         const result = await response.json();
-        console.log("API Response:", result);  // ✅ Debugging log
+        console.log("API Response:", result);  // Debugging log
 
         this.detections = result;
       } catch (error) {
