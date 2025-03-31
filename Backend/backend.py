@@ -76,6 +76,23 @@ def save_debug_image(image, filename):
     image.save(path, format="JPEG")
     return path
 
+# Function to compress the image by lowering the quality
+def compress_image(image: Image, quality: int = 75):
+    """
+    Compress the image to a lower quality to reduce its size.
+
+    Args:
+        image: PIL Image object.
+        quality: Integer from 1 to 100 representing the quality of the saved image.
+        
+    Returns:
+        base64 encoded string of the compressed image.
+    """
+    buffered = BytesIO()
+    image.save(buffered, format="JPEG", quality=quality)  # Lower the quality
+    buffered.seek(0)  # Rewind the buffer
+    return base64.b64encode(buffered.getvalue()).decode()  # Convert to base64
+
 # Endpoint to detect lung cancer
 @app.post("/detect/")
 async def detect_lung_cancer(file: UploadFile = File(...), confidence: float = Form(...)):
@@ -98,9 +115,9 @@ async def detect_lung_cancer(file: UploadFile = File(...), confidence: float = F
 
         # Save annotated image in memory
         after_img = Image.fromarray(annotated_img)
-        buffered = BytesIO()
-        after_img.save(buffered, format="JPEG")
-        base64_encoded = base64.b64encode(buffered.getvalue()).decode()
+
+        # Compress the image (quality set to 50 for example)
+        base64_encoded = compress_image(after_img, quality=50)
 
         # Return JSON response with detection results and annotated image
         return JSONResponse(content={
