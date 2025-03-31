@@ -9,3 +9,5 @@ cd Frontend/lung-cancer-frontend
 npm run dev
 
 #Currently only using v0.0.2b model
+#Iprove frontend
+#Add the other 2 models
