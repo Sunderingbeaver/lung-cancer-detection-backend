@@ -1,0 +1,16 @@
+{
+    "name": "lung-cancer-detection",
+    "version": "1.0.0",
+    "private": true,
+    "workspaces": [
+        "Frontend",
+        "Backend"
+    ],
+    "scripts": {
+        "dev:frontend": "cd Frontend && npm run dev",
+        "build:frontend": "cd Frontend && npm run build",
+        "serve:frontend": "cd Frontend && npm run serve",
+        "dev:backend": "cd Backend && python -m uvicorn api.backend:app --host 0.0.0.0 --port 8000 --reload",
+        "install:backend": "cd Backend && python -m venv venv && .\\venv\\Scripts\\activate && pip install -r requirements.txt"
+    }
+}
