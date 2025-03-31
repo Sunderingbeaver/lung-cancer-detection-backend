@@ -15,9 +15,10 @@ import gdown
 from pathlib import Path
 from fastapi.middleware.cors import CORSMiddleware
 
-
+# FastAPI app initialization
 app = FastAPI()
 
+# Allow all origins (for CORS)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -26,20 +27,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Model path and download settings
 MODEL_PATH = Path("v0.0.2b.pt")
 MODEL_DRIVE_ID = "1han39oMGCXQ-2allaEgqdK9UQFMfmJuW"
-
 DEBUG_DIR = "debug_uploads"
 os.makedirs(DEBUG_DIR, exist_ok=True)
 
+# Download model if not already present
 def download_model():
     if not MODEL_PATH.exists():
         url = f"https://drive.google.com/uc?id={MODEL_DRIVE_ID}"
         gdown.download(url, str(MODEL_PATH), quiet=False)
 
 download_model()
-model = YOLO(str(MODEL_PATH))
+model = YOLO(str(MODEL_PATH))  # Load the model
 
+# Convert DICOM to JPEG
 def convert_dcm_to_jpeg(image_array):
     if len(image_array.shape) == 2:  # Grayscale image
         img_rgb = cv2.cvtColor(image_array, cv2.COLOR_GRAY2RGB)
@@ -48,7 +51,7 @@ def convert_dcm_to_jpeg(image_array):
     
     return Image.fromarray(img_rgb)
 
-
+# Load DICOM file
 async def load_dicom(file):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".dcm") as temp_file:
         file_content = await file.read()  # Await file.read()
@@ -67,12 +70,13 @@ async def load_dicom(file):
     os.remove(temp_file_path)
     return img_array
 
-
+# Save debug images for reference
 def save_debug_image(image, filename):
     path = os.path.join(DEBUG_DIR, filename)
     image.save(path, format="JPEG")
     return path
 
+# Endpoint to detect lung cancer
 @app.post("/detect/")
 async def detect_lung_cancer(file: UploadFile = File(...), confidence: float = Form(...)):
     try:
@@ -82,22 +86,23 @@ async def detect_lung_cancer(file: UploadFile = File(...), confidence: float = F
             img = convert_dcm_to_jpeg(img_array)
         else:
             img = Image.open(file.file).convert("RGB")
-        
-        #before_backend_path = save_debug_image(img, "beforebackend.jpg")
+
+        # Run detection
         results = model.predict(source=np.array(img), conf=confidence)
         
+        # Annotate image with bounding boxes
         annotated_img = np.array(img)
         for box in results[0].boxes.xyxy.numpy():
             x1, y1, x2, y2 = map(int, box[:4])
             cv2.rectangle(annotated_img, (x1, y1), (x2, y2), (255, 0, 0), 2)
-        
+
+        # Save annotated image in memory
         after_img = Image.fromarray(annotated_img)
-        #after_backend_path = save_debug_image(after_img, "afterbackend.jpg")
-        
         buffered = BytesIO()
         after_img.save(buffered, format="JPEG")
         base64_encoded = base64.b64encode(buffered.getvalue()).decode()
-        
+
+        # Return JSON response with detection results and annotated image
         return JSONResponse(content={
             "detections": results[0].boxes.xywh.numpy().tolist() if results and len(results[0].boxes) > 0 else [],
             "confidence_scores": results[0].boxes.conf.numpy().tolist() if results and len(results[0].boxes) > 0 else [],
@@ -108,6 +113,15 @@ async def detect_lung_cancer(file: UploadFile = File(...), confidence: float = F
         print("ERROR:\n", error_details)  # Print full error
         return JSONResponse(content={"error": str(e), "details": error_details}, status_code=500)
 
+# Root endpoint to check if API is running
 @app.get("/")
 async def root():
     return {"message": "Lung Cancer Detection API is running!"}
+
+# Vercel handler (if needed for deployment)
+def handler(event, context):
+    return app(event, context)
+
+# Optional: To run the FastAPI app locally
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)
