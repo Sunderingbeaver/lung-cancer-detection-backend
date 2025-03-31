@@ -1,5 +1,5 @@
 module.exports = {
-    publicPath: './',
-    outputDir: './Frontend/dist', 
-    assetsDir: 'assets',
-  };
+  publicPath: '/',
+  outputDir: 'dist', // Generates the build in the correct location
+  assetsDir: 'assets',
+};
