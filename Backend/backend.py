@@ -77,17 +77,7 @@ def save_debug_image(image, filename):
     return path
 
 # Function to compress the image by lowering the quality
-def compress_image(image: Image, quality: int = 75):
-    """
-    Compress the image to a lower quality to reduce its size.
-
-    Args:
-        image: PIL Image object.
-        quality: Integer from 1 to 100 representing the quality of the saved image.
-        
-    Returns:
-        base64 encoded string of the compressed image.
-    """
+def compress_image(image: Image, quality: int = 30):
     buffered = BytesIO()
     image.save(buffered, format="JPEG", quality=quality)  # Lower the quality
     buffered.seek(0)  # Rewind the buffer
