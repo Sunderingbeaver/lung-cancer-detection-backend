@@ -33,9 +33,12 @@ MODEL_DRIVE_ID = os.getenv("MODEL_DRIVE_ID")
 
 # Download model if not already present
 def download_model():
+    print("Model exists")
     if not MODEL_PATH.exists():
+        print("Model does not exist")
         url = f"https://drive.google.com/uc?id={MODEL_DRIVE_ID}"
         gdown.download(url, str(MODEL_PATH), quiet=False)
+        print("Model successfully downloaded.")
 
 download_model()
 model = YOLO(str(MODEL_PATH))  # Load the model
