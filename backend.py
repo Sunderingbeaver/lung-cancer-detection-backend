@@ -14,6 +14,8 @@ import traceback
 import gdown
 from pathlib import Path
 from fastapi.middleware.cors import CORSMiddleware
+from torch.serialization import add_safe_class
+from ultralytics.nn.tasks import DetectionModel
 
 # FastAPI app initialization
 app = FastAPI()
@@ -28,20 +30,21 @@ app.add_middleware(
 )
 
 # Model path and download settings
+add_safe_class(DetectionModel)
+
 MODEL_PATH = Path("v0.0.2b.pt")
 MODEL_DRIVE_ID = os.getenv("MODEL_DRIVE_ID")
 
-# Download model if not already present
 def download_model():
-    print("Model exists")
     if not MODEL_PATH.exists():
-        print("Model does not exist")
         url = f"https://drive.google.com/uc?id={MODEL_DRIVE_ID}"
         gdown.download(url, str(MODEL_PATH), quiet=False)
-        print("Model successfully downloaded.")
+    else:
+        print("Model already exists.")
 
 download_model()
-model = YOLO(str(MODEL_PATH))  # Load the model
+model = YOLO(str(MODEL_PATH))
+
 
 # Convert DICOM to JPEG
 def convert_dcm_to_jpeg(image_array):
