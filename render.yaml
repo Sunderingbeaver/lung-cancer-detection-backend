@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: lung-cancer-detection-api
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -m uvicorn api.backend:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9
+      - key: PORT
+        fromService:
+          type: web
+          name: lung-cancer-detection-api
+          envVarKey: PORT
+    autoDeploy: true
+    healthCheckPath: /

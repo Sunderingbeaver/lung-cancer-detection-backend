@@ -30,8 +30,6 @@ app.add_middleware(
 # Model path and download settings
 MODEL_PATH = Path("v0.0.2b.pt")
 MODEL_DRIVE_ID = "1han39oMGCXQ-2allaEgqdK9UQFMfmJuW"
-DEBUG_DIR = "debug_uploads"
-os.makedirs(DEBUG_DIR, exist_ok=True)
 
 # Download model if not already present
 def download_model():
@@ -69,12 +67,6 @@ async def load_dicom(file):
     img_array = np.uint8(img_array)  # Convert to uint8
     os.remove(temp_file_path)
     return img_array
-
-# Save debug images for reference
-def save_debug_image(image, filename):
-    path = os.path.join(DEBUG_DIR, filename)
-    image.save(path, format="JPEG")
-    return path
 
 # Function to compress the image by lowering the quality
 def compress_image(image: Image, quality: int = 30):
@@ -126,5 +118,5 @@ async def root():
     return {"message": "Lung Cancer Detection API is running!"}
 
 # Optional: To run the FastAPI app locally
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+#if __name__ == "__main__":
+#    uvicorn.run(app, host="0.0.0.0", port=8000)
