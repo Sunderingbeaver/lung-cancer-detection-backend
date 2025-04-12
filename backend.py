@@ -13,16 +13,17 @@ from fastapi.middleware.cors import CORSMiddleware
 # FastAPI app initialization
 app = FastAPI()
 
-
+'''
 allowed_origins = [
     "http://localhost",  # Localhost testing
     "http://127.0.0.1", # For Postman (127.0.0.1)
     "https://testing-git-main-sunderingbeavers-projects.vercel.app/"  # Testing site
-]
+]'''
+
 # Allow all origins (for CORS)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
+    allow_origins="*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
