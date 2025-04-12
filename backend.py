@@ -78,6 +78,11 @@ def compress_image(image: Image, quality: int = 30):
     buffered.seek(0)  # Rewind the buffer
     return base64.b64encode(buffered.getvalue()).decode()  # Convert to base64
 
+# Fallback
+@app.api_route("/detect/", methods=["GET", "PUT", "DELETE", "PATCH"])
+async def invalid_method():
+    return JSONResponse(status_code=405, content={"error": "Use POST with form-data"})
+
 # Endpoint to detect lung cancer
 @app.post("/detect/")
 async def detect_lung_cancer(file: UploadFile = File(...), confidence: float = Form(...)):
