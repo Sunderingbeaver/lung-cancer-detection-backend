@@ -125,10 +125,6 @@ async def detect_lung_cancer(file: UploadFile = File(...), confidence: float = F
 async def root():
     return {"message": "Lung Cancer Detection API is running!"}
 
-# Vercel handler (if needed for deployment)
-def handler(event, context):
-    return app(event, context)
-
 # Optional: To run the FastAPI app locally
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
