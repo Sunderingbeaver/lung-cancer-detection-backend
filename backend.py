@@ -79,48 +79,47 @@ async def detect_lung_cancer(file: UploadFile = File(...), confidence: float = F
 
         # Prepare the inference data for Ultralytics API
         data = {
-            "model": model_url,  # URL to your model on the Hub
-            "imgsz": 640,        # Image size
-            "conf": confidence,  # Confidence threshold
-            "iou": 0.45          # IoU threshold for non-max suppression
+            "model": model_url,
+            "imgsz": 640,
+            "conf": confidence,
+            "iou": 0.45
         }
 
         # Make the inference request to the Ultralytics API
         response = requests.post(url, headers=headers, data=data, files={"file": image_bytes})
-
-        # Check for successful response
         response.raise_for_status()
 
-        # Parse the JSON response from Ultralytics
         inference_results = response.json()
+        print("Ultralytics API response:", inference_results)
 
-        # Assuming that the 'predictions' field contains the bounding boxes and related data
-        predictions = inference_results[0].get('predictions', []) if inference_results else []
+        # Make sure inference_results is a list and access the first item
+        predictions = inference_results[0].get("predictions", []) if isinstance(inference_results, list) and inference_results else []
 
-        # Annotate the image with the bounding boxes returned by the API
-        annotated_img = np.array(img)
+        # Convert PIL to OpenCV (BGR)
+        annotated_img = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+
         for box in predictions:
-            x1, y1, x2, y2 = box['xyxy']  # Adjust as per the actual structure of each box
+            x1, y1, x2, y2 = map(int, box["xyxy"])
+            conf = float(box.get("confidence", 0))
+            label = box.get("label", "object")
             cv2.rectangle(annotated_img, (x1, y1), (x2, y2), (255, 0, 0), 2)
+            cv2.putText(annotated_img, f"{label} {conf:.2f}", (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 1)
 
-        # Save annotated image in memory
-        after_img = Image.fromarray(annotated_img)
+        # Convert back to PIL for encoding
+        after_img = Image.fromarray(cv2.cvtColor(annotated_img, cv2.COLOR_BGR2RGB))
 
-        # Compress the image (quality set to 50 for example)
+        # Encode the image with annotations
         base64_encoded = base64.b64encode(compress_image(after_img, quality=50)).decode()
 
-        # Return JSON response with detection results and annotated image
         return JSONResponse(content={
-            "detections": predictions,  # List of detections
-            "confidence_scores": [box['confidence'] for box in predictions],
-            "image": base64_encoded  # Base64-encoded image with annotations
+            "detections": predictions,
+            "confidence_scores": [box["confidence"] for box in predictions],
+            "image": base64_encoded
         })
-    
+
     except requests.exceptions.RequestException as e:
-        # Handle request error
         return JSONResponse(status_code=500, content={"error": "Failed to communicate with inference API", "details": str(e)})
     except Exception as e:
-        # Handle other exceptions
         error_details = traceback.format_exc()
         return JSONResponse(status_code=500, content={"error": str(e), "details": error_details})
 
