@@ -95,7 +95,7 @@ async def detect_lung_cancer(file: UploadFile = File(...), confidence: float = F
         inference_results = response.json()
 
         # Assuming that the 'predictions' field contains the bounding boxes and related data
-        predictions = inference_results.get('predictions', [])
+        predictions = inference_results[0].get('predictions', []) if inference_results else []
 
         # Annotate the image with the bounding boxes returned by the API
         annotated_img = np.array(img)
