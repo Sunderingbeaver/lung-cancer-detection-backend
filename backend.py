@@ -14,7 +14,6 @@ import traceback
 import gdown
 from pathlib import Path
 from fastapi.middleware.cors import CORSMiddleware
-from torch.serialization import add_safe_class
 from ultralytics.nn.tasks import DetectionModel
 
 # FastAPI app initialization
@@ -30,7 +29,6 @@ app.add_middleware(
 )
 
 # Model path and download settings
-add_safe_class(DetectionModel)
 
 MODEL_PATH = Path("v0.0.2b.pt")
 MODEL_DRIVE_ID = os.getenv("MODEL_DRIVE_ID")
