@@ -94,10 +94,13 @@ async def detect_lung_cancer(file: UploadFile = File(...), confidence: float = F
         # Parse the JSON response from Ultralytics
         inference_results = response.json()
 
+        # Assuming that the 'predictions' field contains the bounding boxes and related data
+        predictions = inference_results.get('predictions', [])
+
         # Annotate the image with the bounding boxes returned by the API
         annotated_img = np.array(img)
-        for box in inference_results.get('predictions', []):
-            x1, y1, x2, y2 = map(int, box['bbox'])
+        for box in predictions:
+            x1, y1, x2, y2 = box['xyxy']  # Adjust as per the actual structure of each box
             cv2.rectangle(annotated_img, (x1, y1), (x2, y2), (255, 0, 0), 2)
 
         # Save annotated image in memory
@@ -108,8 +111,8 @@ async def detect_lung_cancer(file: UploadFile = File(...), confidence: float = F
 
         # Return JSON response with detection results and annotated image
         return JSONResponse(content={
-            "detections": inference_results.get('predictions', []),  # List of detections
-            "confidence_scores": [box['confidence'] for box in inference_results.get('predictions', [])],
+            "detections": predictions,  # List of detections
+            "confidence_scores": [box['confidence'] for box in predictions],
             "image": base64_encoded  # Base64-encoded image with annotations
         })
     
