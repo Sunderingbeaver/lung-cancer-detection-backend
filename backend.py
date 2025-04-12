@@ -29,7 +29,7 @@ app.add_middleware(
 
 # Model path and download settings
 MODEL_PATH = Path("v0.0.2b.pt")
-MODEL_DRIVE_ID = "1han39oMGCXQ-2allaEgqdK9UQFMfmJuW"
+MODEL_DRIVE_ID = os.getenv("MODEL_DRIVE_ID")
 
 # Download model if not already present
 def download_model():
