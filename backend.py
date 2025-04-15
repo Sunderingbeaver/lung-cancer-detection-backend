@@ -99,12 +99,20 @@ async def detect_lung_cancer(file: UploadFile = File(...), confidence: float = F
         response = requests.post(url, headers=headers, data=data, files=files)
         response.raise_for_status()
 
+        # Debug
+        print("API Response:", response.json())
+
         inference_results = response.json()
         predictions = inference_results[0].get("predictions", []) if isinstance(inference_results, list) else []
+
+        # Debug 
+        print("Predictions:", predictions)
 
         # Annotate image
         annotated_img = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
         for box in predictions:
+            # Debug
+            print(f"Processing box: {box}")
             x1, y1, x2, y2 = map(int, box["xyxy"])
             label = box.get("label", "object")
             conf_score = box.get("confidence", 0)
@@ -115,12 +123,16 @@ async def detect_lung_cancer(file: UploadFile = File(...), confidence: float = F
         # Convert to PIL for compression and encoding
         final_img = Image.fromarray(cv2.cvtColor(annotated_img, cv2.COLOR_BGR2RGB))
         base64_encoded = base64.b64encode(compress_image(final_img, quality=50)).decode()
-
-        return JSONResponse(content={
+        
+        # Debug
+        final_response = {
             "detections": predictions,
             "confidence_scores": [box["confidence"] for box in predictions],
             "image": base64_encoded
-        })
+        }   
+        print("Final response structure:", final_response.keys())
+        # END
+        return JSONResponse(content=final_response)
 
     except requests.exceptions.RequestException as e:
         return JSONResponse(status_code=500, content={"error": "Failed to communicate with inference API", "details": str(e)})
