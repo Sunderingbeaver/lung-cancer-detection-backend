@@ -75,16 +75,17 @@ async def detect_lung_cancer(file: UploadFile = File(...), confidence: float = F
     try:
         file_extension = file.filename.split(".")[-1].lower()
         
-        if file_extension in ["dcm"]:
+        # Load image based on extension
+        if file_extension == "dcm":
             img_array = await load_dicom(file)
             img = convert_dcm_to_jpeg(img_array)
         else:
             img = Image.open(file.file).convert("RGB")
-        
-        # Convert image to byte stream (required for sending to Ultralytics)
+
+        # Compress image and convert to bytes (for API)
         image_bytes = compress_image(img, quality=50)
 
-        # Prepare the inference data for Ultralytics API
+        # Prepare API request
         data = {
             "model": model_url,
             "imgsz": 640,
@@ -92,31 +93,28 @@ async def detect_lung_cancer(file: UploadFile = File(...), confidence: float = F
             "iou": 0.45
         }
 
-        # Make the inference request to the Ultralytics API
-        response = requests.post(url, headers=headers, data=data, files={"file": image_bytes})
+        files = {"file": ("image.jpg", image_bytes, "image/jpeg")}
+
+        # Send to Ultralytics API
+        response = requests.post(url, headers=headers, data=data, files=files)
         response.raise_for_status()
 
         inference_results = response.json()
-        print("Ultralytics API response:", inference_results)
+        predictions = inference_results[0].get("predictions", []) if isinstance(inference_results, list) else []
 
-        # Make sure inference_results is a list and access the first item
-        predictions = inference_results[0].get("predictions", []) if isinstance(inference_results, list) and inference_results else []
-
-        # Convert PIL to OpenCV (BGR)
+        # Annotate image
         annotated_img = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
-
         for box in predictions:
             x1, y1, x2, y2 = map(int, box["xyxy"])
-            conf = float(box.get("confidence", 0))
             label = box.get("label", "object")
+            conf_score = box.get("confidence", 0)
             cv2.rectangle(annotated_img, (x1, y1), (x2, y2), (255, 0, 0), 2)
-            cv2.putText(annotated_img, f"{label} {conf:.2f}", (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 1)
+            cv2.putText(annotated_img, f"{label} {conf_score:.2f}", (x1, y1 - 10),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 1)
 
-        # Convert back to PIL for encoding
-        after_img = Image.fromarray(cv2.cvtColor(annotated_img, cv2.COLOR_BGR2RGB))
-
-        # Encode the image with annotations
-        base64_encoded = base64.b64encode(compress_image(after_img, quality=50)).decode()
+        # Convert to PIL for compression and encoding
+        final_img = Image.fromarray(cv2.cvtColor(annotated_img, cv2.COLOR_BGR2RGB))
+        base64_encoded = base64.b64encode(compress_image(final_img, quality=50)).decode()
 
         return JSONResponse(content={
             "detections": predictions,
@@ -126,8 +124,10 @@ async def detect_lung_cancer(file: UploadFile = File(...), confidence: float = F
 
     except requests.exceptions.RequestException as e:
         return JSONResponse(status_code=500, content={"error": "Failed to communicate with inference API", "details": str(e)})
+
     except Exception as e:
         error_details = traceback.format_exc()
+        print("ERROR:\n", error_details)
         return JSONResponse(status_code=500, content={"error": str(e), "details": error_details})
 
 # Root endpoint to check if API is running
