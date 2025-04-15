@@ -103,14 +103,29 @@ async def detect_lung_cancer(file: UploadFile = File(...), confidence: float = F
         print("API Response:", response.json())
 
         inference_results = response.json()
-        predictions = inference_results[0].get("predictions", []) if isinstance(inference_results, list) else []
+        predictions = []
+        if "images" in inference_results and len(inference_results["images"]) > 0:
+            results = inference_results["images"][0].get("results", [])
+            for result in results:
+                # Transform the result into your expected format
+                prediction = {
+                    "xyxy": [
+                        result["box"]["x1"],
+                        result["box"]["y1"],
+                        result["box"]["x2"],
+                        result["box"]["y2"]
+                    ],
+                    "confidence": result["confidence"],
+                    "label": result["name"]
+                }
+                predictions.append(prediction)
 
         # Debug 
         print("Predictions:", predictions)
 
         # Annotate image
-        annotated_img = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
-        for box in predictions:
+        annotated_img = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)          
+        for box in predictions:            
             # Debug
             print(f"Processing box: {box}")
             x1, y1, x2, y2 = map(int, box["xyxy"])
