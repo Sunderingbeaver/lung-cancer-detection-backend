@@ -258,6 +258,7 @@ async def detect_lung_cancer(file: UploadFile = File(...), confidence: float = F
 async def root():
     return {"message": "Multi-Model Lung Cancer Detection API is running!"}
 
+
 #To run the FastAPI app locally comment out for deployment
 #if __name__ == "__main__":
 #    uvicorn.run(app, host="0.0.0.0", port=8000)
